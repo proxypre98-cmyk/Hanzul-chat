@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conlang Social</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            max-height: 900px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 481px) {
+            #app {
+                border-radius: 20px;
+                height: 85vh;
+            }
+        }
+
+        /* Telas */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .screen.hidden {
+            display: none;
+        }
+
+        /* Estilo de Autenticação */
+        .auth-container {
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .auth-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 16px;
+            color: #333;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: #888;
+        }
+
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #5a6fd6;
+        }
+
+        .admin-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #667eea;
+            cursor: pointer;
+        }
+
+        /* Layout Principal com Deslize Horizontal */
+        .main-viewport {
+            display: flex;
+            width: 400%;
+            height: calc(100% - 60px);
+            transition: transform 0.3s ease;
+        }
+
+        .tab-content {
+            width: 25%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+
+        /* Barra de Navegação Inferior */
+        .nav-bar {
+            height: 60px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            font-size: 11px;
+            color: #777;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .nav-item span {
+            font-size: 20px;
+            display: block;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .lang-select-top {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        /* Posts & Stories */
+        .stories-container {
+            display: flex;
+            padding: 10px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            overflow-x: auto;
+            gap: 10px;
+        }
+
+        .story-ring {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            padding: 2px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .story-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            overflow: hidden;
+        }
+
+        .post-card {
+            background: #fff;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .post-img {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            background: #111;
+        }
+
+        .post-actions {
+            padding: 10px 16px;
+            display: flex;
+            gap: 15px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .post-caption {
+            padding: 0 16px 12px 16px;
+            font-size: 14px;
+        }
+
+        /* Chats */
+        .chat-list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .chat-list-item:hover {
+            background: #f9f9f9;
+        }
+
+        /* Janela de Chat Ativa */
+        .chat-room {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .chat-room.active {
+            transform: translateX(0);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #e5ddd5;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .message.incoming {
+            background: #fff;
+            align-self: flex-start;
+        }
+
+        .message.outgoing {
+            background: #dcf8c6;
+            align-self: flex-end;
+        }
+
+        .chat-input-area {
+            padding: 10px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- TELA DE LOGIN / CADASTRO -->
+    <div id="authScreen" class="screen">
+        <div class="auth-container">
+            <div class="auth-box">
+                <h2 style="text-align: center; margin-bottom: 20px; color: #333;" id="authTitle">Conlang Social</h2>
+                <div class="auth-tabs">
+                    <div class="auth-tab active" onclick="switchAuthTab('login')">Entrar</div>
+                    <div class="auth-tab" onclick="switchAuthTab('register')">Cadastrar</div>
+                </div>
+
+                <div id="loginForm">
+                    <div class="form-group">
+                        <label>E-mail ou Usuário</label>
+                        <input type="text" id="loginUser" placeholder="seu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="loginPass" placeholder="Sua senha">
+                    </div>
+                    <button class="btn" onclick="fazerLogin()">Entrar</button>
+                    <div class="admin-link" onclick="abrirAdminModal()">Entrar como Administrador</div>
+                </div>
+
+                <div id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" id="regName" placeholder="Seu nome">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="regEmail" placeholder="seu@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Criar Senha</label>
+                        <input type="password" id="regPass" placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <button class="btn" onclick="fazerCadastro()">Criar Conta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN -->
+    <div id="adminModal" class="screen hidden" style="background: rgba(0,0,0,0.6); justify-content: center; align-items: center; display: none;">
+        <div style="background: white; padding: 30px; border-radius: 12px; width: 85%; max-width: 350px;">
+            <h3>Acesso Restrito - Admin</h3>
+            <p style="font-size: 13px; color: #666; margin: 10px 0;">Digite a senha secreta de administrador:</p>
+            <input type="password" id="adminSecretInput" placeholder="Senha secreta" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 15px;">
+            <button class="btn" onclick="verificarAdmin()">Acessar Painel</button>
+            <button class="btn" style="background: #ccc; margin-top: 5px;" onclick="fecharAdminModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- APLICATIVO PRINCIPAL (Com Abas Deslizantes) -->
+    <div class="top-bar">
+        <span id="appHeaderTitle">Conlang Social</span>
+        <select class="lang-select-top" id="globalLangSelect" onchange="mudarIdiomaApp(this.value)">
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="zh">中文</option>
+            <option value="ko">한국어</option>
+        </select>
+    </div>
+
+    <div class="main-viewport" id="mainViewport">
+        <!-- ABA 1: FEED -->
+        <div class="tab-content" id="tabFeed">
+            <div class="stories-container">
+                <div class="story-ring"><div class="story-inner">Seu Story</div></div>
+                <div class="story-ring"><div class="story-inner">Linguista</div></div>
+                <div class="story-ring"><div class="story-inner">Conlang</div></div>
+            </div>
+
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="avatar">LB</div>
+                    <div><b>Linguista Bot</b><br><span style="font-size:11px; color:#777;">Bot Oficial</span></div>
+                </div>
+                <div class="post-img" style="display:flex; align-items:center; justify-content:center; color:white; font-size:20px; text-align:center; padding:20px;">
+                    Bem-vindo ao Conlang Social! Crie e compartilhe suas línguas.
+                </div>
+                <div class="post-actions">
+                    <span>❤️</span><span>💬</span><span>↗️</span>
+                </div>
+                <div class="post-caption"><b>linguista_bot</b> Explorando novas fronteiras linguísticas hoje! 🌍✨</div>
+            </div>
+        </div>
+
+        <!-- ABA 2: EXPLORAR / CONLANGS -->
+        <div class="tab-content" id="tabExplore">
+            <div style="padding: 16px;">
+                <h3>Adicionar Sua Conlang</h3>
+                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Envie uma foto ou rascunho da sua língua para detecção automática e integração ao app.</p>
+                <input type="text" id="conlangName" placeholder="Nome da sua Conlang (ex: Valyriano Mod)" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:6px;">
+                <input type="file" id="conlangFile" style="margin-bottom:10px;">
+                <button class="btn" onclick="enviarConlang()">Enviar para Análise</button>
+            </div>
+        </div>
+
+        <!-- ABA 3: CHATS E BOTS -->
+        <div class="tab-content" id="tabChats">
+            <div class="chat-list-item" onclick="abrirChat('Linguista Bot', 'LB')">
+                <div class="avatar">LB</div>
+                <div>
+                    <b>Linguista Bot</b>
+                    <div style="font-size: 12px; color: #777;">Olá! Como posso ajudar com sua conlang?</div>
+                </div>
+            </div>
+            <div class="chat-list-item" onclick="abrirChat('Guia do App', 'GA')">
+                <div class="avatar">GA</div>
+                <div>
+                    <b>Guia do App</b>
+                    <div style="font-size: 12px; color: #777;">Dúvidas sobre as funções? Me pergunte!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 4: PERFIL -->
+        <div class="tab-content" id="tabProfile">
+            <div style="padding: 20px; text-align: center;">
+                <div class="avatar" style="width: 80px; height: 80px; margin: 0 auto 10px; font-size: 28px;" id="profileAvatar">U</div>
+                <h3 id="profileName">Usuário</h3>
+                <p style="font-size: 13px; color: #666;" id="profileEmail">usuario@email.com</p>
+                <button class="btn" style="background: #e74c3c; margin-top: 20px;" onclick="fazerLogout()">Sair da Conta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="mudarAba(0)"><span>🏠</span>Feed</div>
+        <div class="nav-item" onclick="mudarAba(1)"><span>🌐</span>Conlangs</div>
+        <div class="nav-item" onclick="mudarAba(2)"><span>💬</span>Chats</div>
+        <div class="nav-item" onclick="mudarAba(3)"><span>👤</span>Perfil</div>
+    </div>
+
+    <!-- JANELA DE CHAT PRIVADO -->
+    <div id="chatRoom" class="chat-room">
+        <div class="top-bar">
+            <button class="icon-btn" onclick="fecharChat()">←</button>
+            <span id="chatTargetName">Nome do Contato</span>
+            <span></span>
+        </div>
+        <div class="chat-messages" id="chatMessagesContainer">
+            <div class="message incoming">Olá! Esta é uma conversa de teste no Conlang Social.</div>
+        </div>
+        <div class="chat-input-area">
+            <button class="icon-btn">📎</button>
+            <input type="text" id="chatInputMessage" placeholder="Escreva uma mensagem...">
+            <button class="icon-btn" onclick="enviarMensagemChat()">📤</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let contasCadastradas = JSON.parse(localStorage.getItem('conlang_contas')) || [];
+    let usuarioAtual = null;
+
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        if(tab === 'login') {
+            document.querySelectorAll('.auth-tab')[0].classList.add('active');
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        } else {
+            document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+    }
+
+    function fazerCadastro() {
+        const nome = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const senha = document.getElementById('regPass').value;
+
+        if(!nome || !email || !senha) {
+            alert('Preencha todos os campos!');
+            return;
+        }
+
+        const existe = contasCadastradas.find(c => c.email === email);
+        if(existe) {
+            alert('Este e-mail já está cadastrado!');
+            return;
+        }
+
+        contasCadastradas.push({nome, email, senha});
+        localStorage.setItem('conlang_contas', JSON.stringify(contasCadastradas));
+        alert('Cadastro realizado com sucesso! Faça login.');
+        switchAuthTab('login');
+    }
+
+    function fazerLogin() {
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+
+        const conta = contasCadastradas.find(c => c.email === user || c.nome === user);
+        if(!conta || conta.senha !== pass) {
+            alert('Conta não encontrada ou senha incorreta! Se não tiver conta, clique em Cadastrar.');
+            return;
+        }
+
+        usuarioAtual = conta;
+        document.getElementById('profileName').innerText = conta.nome;
+        document.getElementById('profileEmail').innerText = conta.email;
+        document.getElementById('profileAvatar').innerText = conta.nome.charAt(0).toUpperCase();
+
+        document.getElementById('authScreen').classList.add('hidden');
+    }
+
+    function fazerLogout() {
+        usuarioAtual = null;
+        document.getElementById('authScreen').classList.remove('hidden');
+    }
+
+    function abrirAdminModal() {
+        document.getElementById('adminModal').style.display = 'flex';
+        document.getElementById('adminSecretInput').value = '';
+    }
+
+    function fecharAdminModal() {
+        document.getElementById('adminModal').style.display = 'none';
+    }
+
+    function verificarAdmin() {
+        const senhaSecreta = document.getElementById('adminSecretInput').value;
+        if(senhaSecreta === 'pão de queijo') {
+            alert('Acesso administrativo autorizado!'
